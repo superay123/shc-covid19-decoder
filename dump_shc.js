@@ -6,6 +6,7 @@ const {
   getQRFromImage,
   getScannedJWS,
   verifyJWS,
+  getJWSHeader,
   decodeJWS,
 } = require("./src/shc");
 
@@ -27,11 +28,12 @@ console.log("-----");
 console.log(scannedJWS);
 console.log("-----");
 
+const header = getJWSHeader(scannedJWS);
 console.log("JWS Header");
-console.log(base64url.decode(scannedJWS.split(".")[0]));
+console.log(header);
 console.log("-----");
 
-verifyJWS(scannedJWS).then(
+verifyJWS(scannedJWS, header.kid).then(
   function (result) {
     return decodeJWS(scannedJWS).then((decoded) => {
       console.log(decoded.vc.credentialSubject.fhirBundle.entry);

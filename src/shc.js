@@ -19,12 +19,23 @@ function getScannedJWS(shcString) {
     .join("");
 }
 
-function verifyJWS(jws) {
-  return jose.JWK.asKey(issuerKeys[0]).then(function (key) {
-    const { verify } = jose.JWS.createVerify(key);
+function verifyJWS(jws, kid) {
+  const key = issuerKeys.find(el => el.kid === kid);
+  if (!key) {
+    error = new Error("Unknown key ID " + kid);
+    return Promise.reject(error);
+  }
+  return jose.JWK.asKey(key).then(function (jwk) {
+    const { verify } = jose.JWS.createVerify(jwk);
     console.log("jws", jws);
     return verify(jws);
   });
+}
+
+function getJWSHeader(jws) {
+  const header = jws.split(".")[0];
+  const json = Buffer.from(header, "base64").toString();
+  return JSON.parse(json);
 }
 
 function decodeJWS(jws) {
@@ -49,5 +60,6 @@ module.exports = {
   getQRFromImage,
   getScannedJWS,
   verifyJWS,
+  getJWSHeader,
   decodeJWS,
 };
