@@ -5,22 +5,38 @@ function setResult(result) {
   document.getElementById("result").textContent = result;
 }
 
-function decodeOnce(codeReader, selectedDeviceId) {
+function setPayload(payload) {
+  setResult("issuer: " + payload.iss + "\n" + JSON.stringify(payload.vc.credentialSubject.fhirBundle.entry, null, 2));
+}
+
+function decodeOnce(codeReader, selectedDeviceId, verifySig) {
   codeReader.decodeFromInputVideoDevice(selectedDeviceId, "video").then(
     (result) => {
       console.log("SHC string", result.text);
       const scannedJWS = getScannedJWS(result.text);
       console.log("scannedJWS", scannedJWS);
-      verifyJWS(scannedJWS).then(
-        function () {
+      decodeJWS(scannedJWS).then(
+        function (decoded) {
           console.log("scannedJWS", scannedJWS);
-          return decodeJWS(scannedJWS).then((decoded) =>
-            setResult(JSON.stringify(decoded, null, 2))
+          if (!verifySig) {
+            setPayload(decoded);
+            return;
+          }
+          return verifyJWS(scannedJWS, decoded.iss).then(
+            (result) => setPayload(decoded),
+            (error) => {
+              if (error.customMessage) {
+                setResult(error.message);
+              } else {
+                console.log("signature verification failed: " + error.message);
+                setResult("Fake vaccine record? signature verification failed for issuer " + decoded.iss);
+              }
+            }
           );
         },
         function (e) {
           console.error(e);
-          setResult("This looks like a fake vaccination proof");
+          setResult("This doesn't look like a SMART health card");
         }
       );
     },
@@ -39,6 +55,7 @@ codeReader
   .then((videoInputDevices) => {
     const sourceSelect = document.getElementById("sourceSelect");
     selectedDeviceId = videoInputDevices[0].deviceId;
+    verifySig = true;
     if (videoInputDevices.length >= 1) {
       videoInputDevices.forEach((element) => {
         const sourceOption = document.createElement("option");
@@ -56,7 +73,7 @@ codeReader
     }
 
     document.getElementById("startButton").addEventListener("click", () => {
-      decodeOnce(codeReader, selectedDeviceId);
+      decodeOnce(codeReader, selectedDeviceId, verifySig);
       console.log(`Started decode from camera with id ${selectedDeviceId}`);
     });
 
@@ -65,6 +82,11 @@ codeReader
       setResult("");
       console.log("Reset.");
     });
+
+    const verifyCheckbox = document.getElementById("verifyCheckbox");
+    verifyCheckbox.onchange = () => {
+      verifySig = verifyCheckbox.checked;
+    };
   })
   .catch((err) => {
     console.error(err);
