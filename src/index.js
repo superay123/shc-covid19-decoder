@@ -42,16 +42,29 @@ function decodeOnce(codeReader, selectedDeviceId, verifySig) {
             },
           );
         },
-        function (e) {
-          console.error(e);
-          setResult("This looks like a fake vaccination proof");
+        function (error) {
+          if (error.customMessage) {
+            setResult(error.message);
+          } else {
+            console.error(error);
+            setResult("Fake vaccine record?\n" +
+              "Signature verification failed for key " + header.kid);
+          }
         }
-      );
-    },
-    (err) => {
+      ).catch((e) => {
+        console.error(e);
+        setResult("This doesn't look like a SMART health card");
+      });
+    }
+  ).catch((err) => {
+    if (err.cause) {
+      console.error(err.cause);
+      setResult("This doesn't look like a SMART health card");
+    } else {
+      console.error(err);
       setResult(err);
     }
-  );
+  });
 }
 
 let selectedDeviceId;

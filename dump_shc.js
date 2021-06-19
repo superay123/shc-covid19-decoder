@@ -35,11 +35,16 @@ console.log("-----");
 
 verifyJWS(scannedJWS, header.kid).then(
   function (result) {
-    return decodeJWSPayload(result.payload).then((decoded) => {
-      console.log(decoded.vc.credentialSubject.fhirBundle.entry);
-    });
+    return decodeJWSPayload(result.payload).then(
+      (decoded) => {
+        console.log(decoded.vc.credentialSubject.fhirBundle.entry);
+      },
+      (e) => {
+        console.log("Ooooh crap - this looks like a fake vaccination proof");
+      },
+    );
   },
   function (e) {
-    console.log("Ooooh crap - this looks like a fake vaccination proof");
+    console.log("Signature verification failed: " + e.message);
   }
 );
