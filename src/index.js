@@ -1,5 +1,11 @@
 const ZXing = require("@zxing/library");
-const { verifyJWS, getJWSHeader, decodeJWS, getScannedJWS } = require("./shc");
+const {
+  verifyJWS,
+  getJWSHeader,
+  getJWSPayload,
+  decodeJWSPayload,
+  getScannedJWS
+} = require("./shc");
 
 function setResult(result) {
   document.getElementById("result").textContent = result;
@@ -22,12 +28,16 @@ function decodeOnce(codeReader, selectedDeviceId, verifySig) {
       if (verifySig) {
         verify = verifyJWS;
       } else {
-        verify = (jws, kid) => Promise.resolve();
+        verify = (jws, kid) => Promise.resolve({ payload: getJWSPayload(jws) });
       }
       verify(scannedJWS, header.kid).then(
-        function () {
-          console.log("scannedJWS", scannedJWS);
-          return decodeJWS(scannedJWS).then((decoded) => setPayload(decoded));
+        function (result) {
+          return decodeJWSPayload(result.payload).then(
+            (decoded) => {
+              console.log("decodedJWS", decoded);
+              setPayload(decoded);
+            },
+          );
         },
         function (e) {
           console.error(e);

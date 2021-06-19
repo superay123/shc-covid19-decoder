@@ -38,10 +38,12 @@ function getJWSHeader(jws) {
   return JSON.parse(json);
 }
 
-function decodeJWS(jws) {
-  const verifiedPayload = jws.split(".")[1];
-  const decodedPayload = Buffer.from(verifiedPayload, "base64");
+function getJWSPayload(jws) {
+  const payload = jws.split(".")[1];
+  return Buffer.from(payload, "base64");
+}
 
+function decodeJWSPayload(decodedPayload) {
   return new Promise((resolve, reject) => {
     zlib.inflateRaw(decodedPayload, function (err, decompressedResult) {
       if (typeof err === "object" && err) {
@@ -61,5 +63,6 @@ module.exports = {
   getScannedJWS,
   verifyJWS,
   getJWSHeader,
-  decodeJWS,
+  getJWSPayload,
+  decodeJWSPayload,
 };

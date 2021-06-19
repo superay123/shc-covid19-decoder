@@ -7,7 +7,7 @@ const {
   getScannedJWS,
   verifyJWS,
   getJWSHeader,
-  decodeJWS,
+  decodeJWSPayload,
 } = require("./src/shc");
 
 const input = process.argv[2];
@@ -35,7 +35,7 @@ console.log("-----");
 
 verifyJWS(scannedJWS, header.kid).then(
   function (result) {
-    return decodeJWS(scannedJWS).then((decoded) => {
+    return decodeJWSPayload(result.payload).then((decoded) => {
       console.log(decoded.vc.credentialSubject.fhirBundle.entry);
     });
   },
