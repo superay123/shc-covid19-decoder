@@ -11,8 +11,10 @@ function setResult(result) {
   document.getElementById("result").textContent = result;
 }
 
-function setPayload(payload) {
+function setPayload(payload, verified) {
   setResult(
+    (verified ? "verified issuer: " : "issuer (UNVERIFIED): ") +
+    payload.iss + "\n" +
     JSON.stringify(payload.vc.credentialSubject.fhirBundle.entry, null, 2)
   );
 }
@@ -35,7 +37,7 @@ function decodeOnce(codeReader, selectedDeviceId, verifySig) {
           return decodeJWSPayload(result.payload).then(
             (decoded) => {
               console.log("decodedJWS", decoded);
-              setPayload(decoded);
+              setPayload(decoded, verifySig);
             },
           );
         },
