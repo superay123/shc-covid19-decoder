@@ -40,6 +40,6 @@ verifyJWS(scannedJWS, header.kid).then(
     });
   },
   function (e) {
-    console.log("Ooooh crap - this looks like a fake vacinnation proof");
+    console.log("Ooooh crap - this looks like a fake vaccination proof");
   }
 );
