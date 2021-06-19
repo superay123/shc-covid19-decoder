@@ -9,6 +9,7 @@ const {
 
 function setResult(result) {
   document.getElementById("result").textContent = result;
+  codeReader.reset();
 }
 
 function setPayload(payload, verified) {
